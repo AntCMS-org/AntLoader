@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AntCMS;
 
-class Antloader
+class AntLoader
 {
     private string $classMapPath;
 
