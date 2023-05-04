@@ -8,9 +8,13 @@ class Antloader
 {
     private string $classMapPath;
 
+    /** @var array<string,string> **/
     private array $psr0 = [];
+
+    /** @var array<string,string> **/
     private array $psr4 = [];
 
+    /** @var array<string,string> **/
     private array $classMap = [];
 
     /**
@@ -144,10 +148,10 @@ class Antloader
     /**
      * @param string $class Classname, after having and specialized handling performed
      * @param string $path The path associated with the prefix
-     * @param mixed $prefix The prefix matching the classname.
+     * @param string $prefix The prefix matching the classname.
      * @return string The completed file path.
      */
-    private function getFile(string $class, string $path, $prefix): string
+    private function getFile(string $class, string $path, string $prefix): string
     {
         //Remove the "prefix" so we get just the classname
         $classname = substr($class, strlen($prefix));
@@ -168,7 +172,7 @@ class Antloader
     private function saveMap(): void
     {
         // If the classmap path isn't defined, don't try to save to it.
-        if(empty($this->classMapPath)){
+        if (empty($this->classMapPath)) {
             return;
         }
 
