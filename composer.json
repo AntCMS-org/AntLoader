@@ -18,9 +18,13 @@
     ],
     "minimum-stability": "stable",
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "require-dev": {
+        "pestphp/pest": "^1.23",
         "phpstan/phpstan": "^1.10"
     }
 }

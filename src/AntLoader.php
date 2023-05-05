@@ -6,7 +6,7 @@ namespace AntCMS;
 
 class AntLoader
 {
-    private string $classMapPath;
+    private string $classMapPath = '';
 
     /** @var array<string,string> **/
     private array $psr0 = [];
@@ -65,6 +65,15 @@ class AntLoader
     public function register(): void
     {
         spl_autoload_register(array($this, 'autoload'));
+    }
+
+    /**
+     * Un-registers the autoloader.
+     * @return void
+     * */
+    public function unRegister(): void
+    {
+        spl_autoload_unregister(array($this, 'autoload'));
     }
 
     /**
