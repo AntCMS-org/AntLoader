@@ -17,7 +17,7 @@ A small and simple autoloader for PHP applications.
 $classMapPath = __DIR__  . DIRECTORY_SEPARATOR .  'Cache'  . DIRECTORY_SEPARATOR .  'classMap.php';
 $loader = new AntCMS\AntLoader($classMapPath );
 $loader->addPrefix('', 'somepath', 'psr0'); //Add a path for a PSR-0 autoloader, by providing an empty string it'll search for all classes in this path.
-$loader->addPrefix('Example\\Class\\', 'someotherpath'); //Add a path for a PSR-4 autoloader, which will only search in that directory for the "Example\Class" class.
+$loader->addPrefix('Example\\Class\\', 'someotherpath'); //Add a path for a PSR-4 autoloader, which will only search in that directory for the "Example\Class" namespace.
 $loader->checkClassMap(); // Create a new classmap if it doesn't already exist. If it does, load it now.
 $loader->register(); // Register the autoloader within PHP.
 ```

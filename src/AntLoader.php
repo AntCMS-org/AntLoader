@@ -18,9 +18,9 @@ class AntLoader
     private array $classMap = [];
 
     /**
-     * Configures the path of where to save the classmap. It is recomended to save this to a cache folder that will occasionally be cleared.
-     * You don't need to set the classmap path, however it is recomended for performance reasons.
-     * @param string $path (optional) The full path of where to save the classmap to, including the file name.
+     * Creates a new instance of AntLoader.
+     * 
+     * @param string $path (optional) The full path of where to save the classmap to, including the file name. It is recomended to include this for improved performance.
      * @return void 
      */
     public function __construct(string $path = '')
@@ -37,7 +37,7 @@ class AntLoader
      */
     public function checkClassMap(): void
     {
-        if (!file_exists($this->classMapPath)) {
+        if (!is_readable($this->classMapPath)) {
             $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
 
             foreach ($this->psr0 as $path) {
@@ -60,6 +60,7 @@ class AntLoader
 
     /**
      * Registers the autoloader.
+     * 
      * @return void
      * */
     public function register(): void
@@ -69,6 +70,7 @@ class AntLoader
 
     /**
      * Un-registers the autoloader.
+     * 
      * @return void
      * */
     public function unRegister(): void
@@ -77,12 +79,14 @@ class AntLoader
     }
 
     /**
-     * @param string $prefix Class prefix. Use an empty prefix to allow this prefix to work with any path. Paths must already have directory separators normalized for the current system.
-     * @param string $path Base path associated with the class prefix
-     * @param string $type The type of PSR autoloader the prefix is associated with. EX: psr4
+     * Registers a namepsace and an associated path to look in.
+     * 
+     * @param string $namespace Use an empty string to allow this path to apply for all namespaces and classes. Paths must already have directory separators normalized for the current system.
+     * @param string $path Base path associated with the namespace.
+     * @param string $type (optional) The type of PSR autoloader to associate with the namespace defaults to a PSR-4 autoloader. (accepts psr4 or psr0)
      * @return void
      */
-    public function addPrefix(string $prefix, string $path, string $type = 'psr4'): void
+    public function addPrefix(string $namespace, string $path, string $type = 'psr4'): void
     {
         //The loader assumes the path does NOT end in a directory separator, so let's remove it now.
         if (str_ends_with($path, DIRECTORY_SEPARATOR)) {
@@ -93,10 +97,10 @@ class AntLoader
 
         switch ($type) {
             case 'psr0':
-                $this->psr0[$prefix] = $path;
+                $this->psr0[$namespace] = $path;
                 break;
             case 'psr4':
-                $this->psr4[$prefix] = $path;
+                $this->psr4[$namespace] = $path;
                 break;
             default:
                 throw new \Exception("Unknown PSR autoloader type: {$type}");
@@ -104,6 +108,8 @@ class AntLoader
     }
 
     /**
+     * The autoloder function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
+     * 
      * @param string $class Classname to load. If found, file will be included and execution will be completed.
      * @return void
      */
@@ -111,7 +117,7 @@ class AntLoader
     {
         //Check if the class exists in the classMap array and then use that to require it, rather than searching for it.
         $file = $this->classMap[$class] ?? '';
-        if (file_exists($file)) {
+        if (is_readable($file)) {
             require $file;
             return;
         }
@@ -119,12 +125,12 @@ class AntLoader
         /* PSR-0 Loader.
          * @see https://www.php-fig.org/psr/psr-0/
          */
-        foreach ($this->psr0 as $prefix => $path) {
-            if (empty($prefix) || strpos($class, $prefix) === 0) {
-                $class = str_replace('_', DIRECTORY_SEPARATOR, $class);
-                $file = $this->getFile($class, $path, $prefix);
+        foreach ($this->psr0 as $namespace => $path) {
+            if (empty($namespace) || strpos($class, $namespace) === 0) {
+                $classModifiedClass = str_replace('_', DIRECTORY_SEPARATOR, $class);
+                $file = $this->getFile($classModifiedClass, $path, $namespace);
 
-                if (file_exists($file)) {
+                if (is_readable($file)) {
                     //The class was found, but not defined in our classmap, so let's update it and save it.
                     $this->classMap[$class] = $file;
                     $this->saveMap();
@@ -138,11 +144,11 @@ class AntLoader
         /* PSR-4 Loader.
          * @see https://www.php-fig.org/psr/psr-4/
          */
-        foreach ($this->psr4 as $prefix => $path) {
-            if (empty($prefix) || strpos($class, $prefix) === 0) {
-                $file = $this->getFile($class, $path, $prefix);
+        foreach ($this->psr4 as $namespace => $path) {
+            if (empty($namespace) || strpos($class, $namespace) === 0) {
+                $file = $this->getFile($class, $path, $namespace);
 
-                if (file_exists($file)) {
+                if (is_readable($file)) {
                     //The class was found, but not defined in our classmap, so let's update it and save it.
                     $this->classMap[$class] = $file;
                     $this->saveMap();
@@ -155,15 +161,15 @@ class AntLoader
     }
 
     /**
-     * @param string $class Classname, after having and specialized handling performed
-     * @param string $path The path associated with the prefix
-     * @param string $prefix The prefix matching the classname.
+     * @param string $class Classname, after having any specialized handling performed
+     * @param string $path The path associated with the namespace
+     * @param string $namespace The namespace matching the classname.
      * @return string The completed file path.
      */
-    private function getFile(string $class, string $path, string $prefix): string
+    private function getFile(string $class, string $path, string $namespace): string
     {
-        //Remove the "prefix" so we get just the classname
-        $classname = substr($class, strlen($prefix));
+        //Remove the namespace so we get just the classname
+        $classname = substr($class, strlen($namespace));
 
         //Now convert it to a path and ensure it has a directory separator at the start, since our paths won't.
         $classname = str_replace('\\', DIRECTORY_SEPARATOR, $classname) . '.php';
@@ -176,6 +182,7 @@ class AntLoader
 
     /**
      * Saves the current classMap array to the cache folder for later access.
+     * 
      * @return void
      */
     private function saveMap(): void
