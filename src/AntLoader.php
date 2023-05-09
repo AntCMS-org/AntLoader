@@ -8,10 +8,10 @@ class AntLoader
 {
     private string $classMapPath = '';
 
-    /** @var array<string,string> **/
+    /** @var array<string,array<string>> **/
     private array $psr0 = [];
 
-    /** @var array<string,string> **/
+    /** @var array<string,array<string>> **/
     private array $psr4 = [];
 
     /** @var array<string,string> **/
@@ -25,9 +25,7 @@ class AntLoader
      */
     public function __construct(string $path = '')
     {
-        if (!empty($path)) {
-            $this->classMapPath = $path;
-        }
+        $this->classMapPath = $path;
     }
 
     /**
@@ -37,15 +35,23 @@ class AntLoader
      */
     public function checkClassMap(): void
     {
-        if (!is_readable($this->classMapPath)) {
+        if (empty($this->classMapPath)) {
+            return;
+        }
+
+        if (!file_exists($this->classMapPath)) {
             $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
 
-            foreach ($this->psr0 as $path) {
-                $generator->scanPaths($path);
+            foreach ($this->psr0 as $paths) {
+                foreach ($paths as $path) {
+                    $generator->scanPaths($path);
+                }
             }
 
-            foreach ($this->psr4 as $path) {
-                $generator->scanPaths($path);
+            foreach ($this->psr4 as $paths) {
+                foreach ($paths as $path) {
+                    $generator->scanPaths($path);
+                }
             }
 
             $classMap = $generator->getClassMap();
@@ -97,10 +103,10 @@ class AntLoader
 
         switch ($type) {
             case 'psr0':
-                $this->psr0[$namespace] = $path;
+                $this->psr0[$namespace][] = $path;
                 break;
             case 'psr4':
-                $this->psr4[$namespace] = $path;
+                $this->psr4[$namespace][] = $path;
                 break;
             default:
                 throw new \Exception("Unknown PSR autoloader type: {$type}");
@@ -117,26 +123,28 @@ class AntLoader
     {
         //Check if the class exists in the classMap array and then use that to require it, rather than searching for it.
         $file = $this->classMap[$class] ?? '';
-        if (is_readable($file)) {
-            require $file;
+        if (file_exists($file)) {
+            require_once $file;
             return;
         }
 
         /* PSR-0 Loader.
          * @see https://www.php-fig.org/psr/psr-0/
          */
-        foreach ($this->psr0 as $namespace => $path) {
-            if (empty($namespace) || strpos($class, $namespace) === 0) {
+        foreach ($this->psr0 as $namespace => $paths) {
+            if (str_starts_with($class, $namespace)) {
                 $classModifiedClass = str_replace('_', DIRECTORY_SEPARATOR, $class);
-                $file = $this->getFile($classModifiedClass, $path, $namespace);
+                foreach ($paths as $path) {
+                    $file = $this->getFile($classModifiedClass, $path, $namespace);
 
-                if (is_readable($file)) {
-                    //The class was found, but not defined in our classmap, so let's update it and save it.
-                    $this->classMap[$class] = $file;
-                    $this->saveMap();
+                    if (file_exists($file)) {
+                        //The class was found, but not defined in our classmap, so let's update it and save it.
+                        $this->classMap[$class] = $file;
+                        $this->saveMap();
 
-                    require $file;
-                    return;
+                        require_once $file;
+                        return;
+                    }
                 }
             }
         }
@@ -144,17 +152,19 @@ class AntLoader
         /* PSR-4 Loader.
          * @see https://www.php-fig.org/psr/psr-4/
          */
-        foreach ($this->psr4 as $namespace => $path) {
-            if (empty($namespace) || strpos($class, $namespace) === 0) {
-                $file = $this->getFile($class, $path, $namespace);
+        foreach ($this->psr4 as $namespace => $paths) {
+            if (str_starts_with($class, $namespace)) {
+                foreach ($paths as $path) {
+                    $file = $this->getFile($class, $path, $namespace);
 
-                if (is_readable($file)) {
-                    //The class was found, but not defined in our classmap, so let's update it and save it.
-                    $this->classMap[$class] = $file;
-                    $this->saveMap();
+                    if (file_exists($file)) {
+                        //The class was found, but not defined in our classmap, so let's update it and save it.
+                        $this->classMap[$class] = $file;
+                        $this->saveMap();
 
-                    require $file;
-                    return;
+                        require_once $file;
+                        return;
+                    }
                 }
             }
         }
