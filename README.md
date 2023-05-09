@@ -32,10 +32,10 @@ $loader->register(); // Register the autoloader within PHP.
 
 While it's not strictly necessary to use the classmap functionality, we strongly recommend doing so for optimal performance. In our tests, we found that using the classmap resulted in significant speed improvements:
 
-- Software RAID0 SSD Array: 85% faster, reducing the time it took to instance 1000 random classes from 0.0691 seconds to 0.01 seconds.
+- Software RAID 0 SSD Array: 85% faster, reducing the time it took to instance 1000 random classes from 0.0691 seconds to 0.01 seconds.
 - Standard HDD: 91% faster, reducing the time it took to instance 1000 random classes from 0.0796 seconds to 0.0072 seconds.
 
-So, we encourage you to take advantage of the classmap feature to get the best performance out of our code.
+So, we encourage you to take advantage of the classmap feature to get the best performance out of your application.
 
 ### License
 
