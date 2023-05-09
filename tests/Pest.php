@@ -7,6 +7,7 @@ function setupLoader(bool $cache = false)
     $loader = new AntCMS\AntLoader($path);
     $loader->addPrefix('',  $pathClasses . 'PSR0', 'psr0');
     $loader->addPrefix('', $pathClasses . 'PSR4');
+    $loader->addPrefix('', $pathClasses . 'Random');
     $loader->checkClassMap();
     $loader->register();
     return $loader;

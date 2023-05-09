@@ -31,8 +31,8 @@ $loader->register(); // Register the autoloader within PHP.
 ### Notes
 
 - Technically, you don't need to use the classmap functionality, however it is recommended for better performance.
-  - Tests show a 5-10% faster decrease in the time to load 250 random (and very small) classes. (0.1326 seconds VS 0.1418 seconds)
-  - Applications that have low class counts or that are running on fast storage will see a smaller performance gain, however using classmaps should still help eliminate resource usage on the server.
+  - RAID0 SSD Array: 85% faster from 0.0691 seconds to 0.01 seconds when instancing 1000 random classes.
+  - Standard HDD: 91% faster from 0.0796 seconds to 0.0072 seconds when instancing 1000 random classes.
 
 ### License
 

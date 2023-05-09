@@ -23,41 +23,41 @@ test('PSR0Loader', function () {
 });
 
 test('classMap', function () {
-    $classes = createRandomClasses();
+    // Prepare test data
+    deleteRandomClasses();
+    $classes = createRandomClasses(1000);
     $loader = setupLoader();
 
+    // Test class loading without class map
     removeClassMap();
-    $totalTime = 0;
     $start = microtime(true);
-    for ($i = 0; $i < 100; ++$i) {
-        foreach ($classes as $class) {
-            if (class_exists($class)) {
-                $classInstance = new $class();
-                $testResult = $classInstance->testResult();
-            }
-        }
+    foreach ($classes as $class) {
+        expect(class_exists($class))->toBeTrue();
+        $classInstance = new $class();
+        expect($class)->toEqual($classInstance->testResult());
     }
     $end = microtime(true);
-    $totalTime += $end - $start;
+    $totalTime = $end - $start;
     $withoutMap = $totalTime / 10;
     $loader->unRegister();
 
+    // Test class loading with class map
+    deleteRandomClasses();
+    $classes = createRandomClasses(1000);
     $loader = setupLoader(true);
-    $totalTime = 0;
     $start = microtime(true);
-
-    for ($i = 0; $i < 100; ++$i) {
-        foreach ($classes as $class) {
-            if (class_exists($class)) {
-                $classInstance = new $class();
-                $testResult = $classInstance->testResult();
-            }
-        }
+    foreach ($classes as $class) {
+        expect(class_exists($class))->toBeTrue();
+        $classInstance = new $class();
+        expect($class)->toEqual($classInstance->testResult());
     }
     $end = microtime(true);
-    $totalTime += $end - $start;
+    $totalTime = $end - $start;
     $withMap = $totalTime / 10;
+
+    // Clean up and output result
     removeClassMap();
     deleteRandomClasses();
+    echo "$withMap vs $withoutMap";
     expect($withMap)->toBeLessThan($withoutMap);
 });
