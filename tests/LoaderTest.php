@@ -58,6 +58,5 @@ test('classMap', function () {
     // Clean up and output result
     removeClassMap();
     deleteRandomClasses();
-    echo "$withMap vs $withoutMap";
     expect($withMap)->toBeLessThan($withoutMap);
 });

@@ -77,7 +77,7 @@ function createRandomClasses(int $count = 250): array
 function deleteRandomClasses()
 {
 
-    $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . 'Random';
+    $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR . 'Random';
     $pathClasses = new RecursiveDirectoryIterator($pathClasses);
     $pathClasses = new RecursiveIteratorIterator($pathClasses, RecursiveIteratorIterator::CHILD_FIRST);
     foreach ($pathClasses as $file) {

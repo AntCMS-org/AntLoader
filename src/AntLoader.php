@@ -8,10 +8,10 @@ class AntLoader
 {
     private string $classMapPath = '';
 
-    /** @var array<string,array> **/
+    /** @var array<string,array<string>> **/
     private array $psr0 = [];
 
-    /** @var array<string,array> **/
+    /** @var array<string,array<string>> **/
     private array $psr4 = [];
 
     /** @var array<string,string> **/
