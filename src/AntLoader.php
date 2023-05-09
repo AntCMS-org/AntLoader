@@ -25,9 +25,7 @@ class AntLoader
      */
     public function __construct(string $path = '')
     {
-        if (!empty($path)) {
-            $this->classMapPath = $path;
-        }
+        $this->classMapPath = $path;
     }
 
     /**
@@ -37,7 +35,7 @@ class AntLoader
      */
     public function checkClassMap(): void
     {
-        if (!is_readable($this->classMapPath)) {
+        if (!file_exists($this->classMapPath)) {
             $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
 
             foreach ($this->psr0 as $path) {
@@ -117,8 +115,8 @@ class AntLoader
     {
         //Check if the class exists in the classMap array and then use that to require it, rather than searching for it.
         $file = $this->classMap[$class] ?? '';
-        if (is_readable($file)) {
-            require $file;
+        if (file_exists($file)) {
+            require_once $file;
             return;
         }
 
@@ -126,16 +124,16 @@ class AntLoader
          * @see https://www.php-fig.org/psr/psr-0/
          */
         foreach ($this->psr0 as $namespace => $path) {
-            if (empty($namespace) || strpos($class, $namespace) === 0) {
+            if (str_starts_with($class, $namespace)) {
                 $classModifiedClass = str_replace('_', DIRECTORY_SEPARATOR, $class);
                 $file = $this->getFile($classModifiedClass, $path, $namespace);
 
-                if (is_readable($file)) {
+                if (file_exists($file)) {
                     //The class was found, but not defined in our classmap, so let's update it and save it.
                     $this->classMap[$class] = $file;
                     $this->saveMap();
 
-                    require $file;
+                    require_once $file;
                     return;
                 }
             }
@@ -145,15 +143,15 @@ class AntLoader
          * @see https://www.php-fig.org/psr/psr-4/
          */
         foreach ($this->psr4 as $namespace => $path) {
-            if (empty($namespace) || strpos($class, $namespace) === 0) {
+            if (str_starts_with($class, $namespace)) {
                 $file = $this->getFile($class, $path, $namespace);
 
-                if (is_readable($file)) {
+                if (file_exists($file)) {
                     //The class was found, but not defined in our classmap, so let's update it and save it.
                     $this->classMap[$class] = $file;
                     $this->saveMap();
 
-                    require $file;
+                    require_once $file;
                     return;
                 }
             }

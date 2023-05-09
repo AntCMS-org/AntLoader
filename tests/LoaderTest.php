@@ -22,11 +22,10 @@ test('PSR0Loader', function () {
     }
 });
 
-/* TODO: Add more classes here. 4 classes isn't really enough to prove the class map is optimizing things. 
 test('classMap', function () {
-    $classes = ['Class1', 'Class2', 'Namespace1\Class1', 'Test_Class1'];
-
+    $classes = createRandomClasses();
     $loader = setupLoader();
+
     removeClassMap();
     $totalTime = 0;
     $start = microtime(true);
@@ -59,7 +58,6 @@ test('classMap', function () {
     $totalTime += $end - $start;
     $withMap = $totalTime / 10;
     removeClassMap();
-
+    deleteRandomClasses();
     expect($withMap)->toBeLessThan($withoutMap);
 });
-*/
