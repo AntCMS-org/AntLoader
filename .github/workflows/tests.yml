@@ -22,6 +22,7 @@ jobs:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
           coverage: xdebug
+          extensions: apcu
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader

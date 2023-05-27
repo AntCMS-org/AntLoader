@@ -3,11 +3,15 @@ function setupLoader(bool $cache = false)
 {
     $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR;
 
-    $path = ($cache) ? __DIR__ . DIRECTORY_SEPARATOR . 'Cache' . DIRECTORY_SEPARATOR . 'classMap.php' : '';
-    $loader = new AntCMS\AntLoader($path);
-    $loader->addPrefix('',  $pathClasses . 'PSR0', 'psr0');
-    $loader->addPrefix('', $pathClasses . 'PSR4');
-    $loader->addPrefix('', $pathClasses . 'Random');
+    if ($cache) {
+        $loader = new AntCMS\AntLoader();
+    } else {
+        $loader = new AntCMS\AntLoader('none');
+    }
+
+    $loader->addNamespace('',  $pathClasses . 'PSR0', 'psr0');
+    $loader->addNamespace('', $pathClasses . 'PSR4');
+    $loader->addNamespace('', $pathClasses . 'Random');
     $loader->checkClassMap();
     $loader->register();
     return $loader;
