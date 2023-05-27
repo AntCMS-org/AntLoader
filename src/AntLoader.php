@@ -31,7 +31,7 @@ class AntLoader
     /**
      * Creates a new instance of AntLoader.
      *
-     * @param array $config (optional) Configuration options for AntLoader.
+     * @param array<string,mixed> $config (optional) Configuration options for AntLoader.
      *   Available keys:
      *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none'.
      *   - 'path': Where to save the classmap to. By default, this will be saved to a random temp file.
@@ -83,7 +83,7 @@ class AntLoader
 
         if (array_key_exists($config['mode'], $cacheOptions)) {
             $this->cacheType = $cacheOptions[$config['mode']]['type'];
-            $this->cacheKey = $cacheOptions[$config['mode']]['key'] ?? null;
+            $this->cacheKey = $cacheOptions[$config['mode']]['key'] ?? '';
         } else {
             throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
         }
