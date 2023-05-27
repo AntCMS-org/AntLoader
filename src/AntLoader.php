@@ -29,7 +29,7 @@ class AntLoader
     /**
      * Creates a new instance of AntLoader.
      * 
-     * @param string $mod (optional) What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none.
+     * @param string $mode (optional) What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none.
      * @param string $path (optional) Where to save the classmap to. By default, this will be saved to a random temp file.
      *               If you are using the file system cache, it is recomended to manually specify this path to one that is persistient between sessions.
      * @param string $key (optional) Use this option to override the unuiqe key that AntLoader uses with it's cache.
@@ -46,7 +46,7 @@ class AntLoader
         if (empty($path)) {
             $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
         } else {
-            $this->classMap = $path;
+            $this->classMapPath = $path;
         }
 
         switch ($mode) {
@@ -95,7 +95,10 @@ class AntLoader
             $this->classMap = include $this->classMapPath;
         } else {
             if (apcu_exists($this->cacheKey)) {
-                $this->classMap = apcu_fetch($this->cacheKey);
+                $map = apcu_fetch($this->cacheKey);
+                if (is_array($map)) {
+                    $this->classMap = $map;
+                }
             } else {
                 $classMap = $this->generateMap();
                 $this->classMap = $classMap->getMap();
