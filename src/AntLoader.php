@@ -56,13 +56,13 @@ class AntLoader
         if (empty($config['key'])) {
             $generatedID = 'AntLoader_' . hash('md5', __DIR__);
         } else {
-            $generatedID = (string) $config['key'];
+            $generatedID = strval($config['key']);
         }
 
         if (empty($config['path'])) {
             $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
         } else {
-            $this->classMapPath = (string) $config['path'];
+            $this->classMapPath = strval($config['path']);
         }
 
         $cacheOptions = [
@@ -82,13 +82,13 @@ class AntLoader
         ];
 
         if (array_key_exists($config['mode'], $cacheOptions)) {
-            $this->cacheType = (int) $cacheOptions[$config['mode']]['type'];
-            $this->cacheKey = (string) $cacheOptions[$config['mode']]['key'] ?? '';
+            $this->cacheType = intval($cacheOptions[$config['mode']]['type']);
+            $this->cacheKey = strval($cacheOptions[$config['mode']]['key'] ?? '');
         } else {
             throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
         }
 
-        $this->cacheTtl = (int) $config['ttl'];
+        $this->cacheTtl = intval($config['ttl']);
         $this->stopIfNotFound = (bool) $config['stopIfNotFound'];
     }
 
