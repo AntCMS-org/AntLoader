@@ -21,55 +21,75 @@ class AntLoader
 
     private int $cacheType = 0;
     private string $cacheKey = '';
+    private int $cacheTtl = 604800; // 1 Week in seconds.
+    private bool $stopIfNotFound = false;
 
-    const noCache   = -1;
+    const noCache   = 0;
     const fileCache = 1;
     const apcuCache = 2;
 
     /**
      * Creates a new instance of AntLoader.
-     * 
-     * @param string $mode (optional) What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none.
-     * @param string $path (optional) Where to save the classmap to. By default, this will be saved to a random temp file.
-     *               If you are using the file system cache, it is recomended to manually specify this path to one that is persistient between sessions.
-     * @param string $key (optional) Use this option to override the unuiqe key that AntLoader uses with it's cache.
-     *               By default, this will be created off of an MD5 hash of the current directory which should prevent anything being accidentally overridden. 
+     *
+     * @param array $config (optional) Configuration options for AntLoader.
+     *   Available keys:
+     *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none'.
+     *   - 'path': Where to save the classmap to. By default, this will be saved to a random temp file.
+     *             If you are using the file system cache, it is recommended to manually specify this path to one that is persistent between sessions.
+     *   - 'key': Use this option to override the unique key that AntLoader uses with its cache.
+     *            By default, this will be created off of an MD5 hash of the directory where AntLoader resides. This is sufficient for most situations.
+     *   - 'ttl': Time-to-Live for the cache in seconds. Default is 604800 (1 week).
+     *   - 'stopIfNotFound': Setting this to true will cause AntLoader to stop looking for a class if it is not found in the classmap.
      */
-    public function __construct(string $mode = 'auto', string $path = '', string $key = '')
+    public function __construct(array $config = [])
     {
-        if (empty($key)) {
+        $defaultConfig = [
+            'mode' => 'auto',
+            'path' => '',
+            'key' => '',
+            'ttl' => 604800,
+            'stopIfNotFound' => false
+        ];
+
+        $config = array_merge($defaultConfig, $config);
+
+        if (empty($config['key'])) {
             $generatedID = 'AntLoader_' . hash('md5', __DIR__);
         } else {
-            $generatedID = $key;
+            $generatedID = $config['key'];
         }
 
-        if (empty($path)) {
+        if (empty($config['path'])) {
             $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
         } else {
-            $this->classMapPath = $path;
+            $this->classMapPath = $config['path'];
         }
 
-        switch ($mode) {
-            case 'none':
-                $this->cacheType = self::noCache;
-                break;
-            case 'auto':
-                if (extension_loaded('apcu') && apcu_enabled()) {
-                    $this->cacheType = self::apcuCache;
-                    $this->cacheKey = $generatedID;
-                } else {
-                    $this->cacheType = self::fileCache;
-                }
-                break;
-            case 'filesystem':
-                $this->cacheType = self::fileCache;
-                break;
-            case 'apcu':
-                $this->cacheType = self::apcuCache;
-                break;
-            default:
-                throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
+        $cacheOptions = [
+            'none' => [
+                'type' => self::noCache
+            ],
+            'auto' => [
+                'type' => extension_loaded('apcu') && apcu_enabled() ? self::apcuCache : self::fileCache,
+                'key' => $generatedID
+            ],
+            'filesystem' => [
+                'type' => self::fileCache
+            ],
+            'apcu' => [
+                'type' => self::apcuCache
+            ]
+        ];
+
+        if (array_key_exists($config['mode'], $cacheOptions)) {
+            $this->cacheType = $cacheOptions[$config['mode']]['type'];
+            $this->cacheKey = $cacheOptions[$config['mode']]['key'] ?? null;
+        } else {
+            throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
         }
+
+        $this->cacheTtl = $config['ttl'];
+        $this->stopIfNotFound = $config['stopIfNotFound'];
     }
 
     /**
@@ -115,12 +135,13 @@ class AntLoader
     {
         switch ($this->cacheType) {
             case self::apcuCache:
-                apcu_delete($this->cacheKey);
+                @apcu_delete($this->cacheKey);
                 break;
             case self::fileCache:
-                unlink($this->classMapPath);
+                @unlink($this->classMapPath);
                 break;
         }
+        $this->classMap = [];
     }
 
     /**
@@ -178,6 +199,11 @@ class AntLoader
         $file = $this->classMap[$class] ?? '';
         if (file_exists($file)) {
             require_once $file;
+            return;
+        }
+
+        // If this configuration option is set to 'true', AntLoader will stop searching for a class after checking the classmap.
+        if ($this->stopIfNotFound) {
             return;
         }
 
@@ -257,7 +283,7 @@ class AntLoader
             $output .= 'return ' . var_export($this->classMap, true) . ';';
             @file_put_contents($this->classMapPath, $output);
         } else {
-            apcu_store($this->cacheKey, $this->classMap);
+            apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
         }
     }
 
