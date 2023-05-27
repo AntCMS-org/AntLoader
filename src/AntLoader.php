@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AntCMS;
 
+use Composer\ClassMapGenerator\ClassMap;
+
 class AntLoader
 {
     private string $classMapPath = '';
@@ -17,58 +19,135 @@ class AntLoader
     /** @var array<string,string> **/
     private array $classMap = [];
 
+    private int $cacheType = 0;
+    private string $cacheKey = '';
+    private int $cacheTtl = 604800; // 1 Week in seconds.
+    private bool $stopIfNotFound = false;
+
+    const noCache   = 0;
+    const fileCache = 1;
+    const apcuCache = 2;
+
     /**
      * Creates a new instance of AntLoader.
-     * 
-     * @param string $path (optional) The full path of where to save the classmap to, including the file name. It is recomended to include this for improved performance.
-     * @return void 
+     *
+     * @param array<string,mixed> $config (optional) Configuration options for AntLoader.
+     *   Available keys:
+     *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none'.
+     *   - 'path': Where to save the classmap to. By default, this will be saved to a random temp file.
+     *             If you are using the file system cache, it is recommended to manually specify this path to one that is persistent between sessions.
+     *   - 'key': Use this option to override the unique key that AntLoader uses with its cache.
+     *            By default, this will be created off of an MD5 hash of the directory where AntLoader resides. This is sufficient for most situations.
+     *   - 'ttl': Time-to-Live for the cache in seconds. Default is 604800 (1 week).
+     *   - 'stopIfNotFound': Setting this to true will cause AntLoader to stop looking for a class if it is not found in the classmap.
      */
-    public function __construct(string $path = '')
+    public function __construct(array $config = [])
     {
-        $this->classMapPath = $path;
+        $defaultConfig = [
+            'mode' => 'auto',
+            'path' => '',
+            'key' => '',
+            'ttl' => 604800,
+            'stopIfNotFound' => false
+        ];
+
+        $config = array_merge($defaultConfig, $config);
+
+        if (empty($config['key'])) {
+            $generatedID = 'AntLoader_' . hash('md5', __DIR__);
+        } else {
+            $generatedID = strval($config['key']); // @phpstan-ignore-line
+        }
+
+        if (empty($config['path'])) {
+            $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
+        } else {
+            $this->classMapPath = strval($config['path']); // @phpstan-ignore-line
+        }
+
+        $cacheOptions = [
+            'none' => [
+                'type' => self::noCache
+            ],
+            'auto' => [
+                'type' => extension_loaded('apcu') && apcu_enabled() ? self::apcuCache : self::fileCache,
+                'key' => $generatedID
+            ],
+            'filesystem' => [
+                'type' => self::fileCache
+            ],
+            'apcu' => [
+                'type' => self::apcuCache
+            ]
+        ];
+
+        // @phpstan-ignore-next-line
+        if (array_key_exists($config['mode'], $cacheOptions)) {
+            $this->cacheType = intval($cacheOptions[$config['mode']]['type']);
+            $this->cacheKey = strval($cacheOptions[$config['mode']]['key'] ?? '');
+        } else {
+            throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
+        }
+
+        $this->cacheTtl = intval($config['ttl']); // @phpstan-ignore-line
+        $this->stopIfNotFound = (bool) $config['stopIfNotFound'];
     }
 
     /**
      * Checks for the existence of the classMap file. Will generate a new one if it doesn't exist.
      * After generating one / if it exists, the map is loaded to the classMap array to be used to speed up loading later.
-     * @return void
      */
     public function checkClassMap(): void
     {
-        if (empty($this->classMapPath)) {
+        if ($this->cacheType === self::noCache) {
             return;
         }
 
-        if (!file_exists($this->classMapPath)) {
-            $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
-
-            foreach ($this->psr0 as $paths) {
-                foreach ($paths as $path) {
-                    $generator->scanPaths($path);
-                }
+        if ($this->cacheType === self::fileCache) {
+            // If the classmap doesn't yet exist, generate a new one now.
+            if (!file_exists($this->classMapPath)) {
+                $classMap = $this->generateMap();
+                $this->classMap = $classMap->getMap();
+                $this->saveMap();
+                return;
             }
 
-            foreach ($this->psr4 as $paths) {
-                foreach ($paths as $path) {
-                    $generator->scanPaths($path);
+            // Otherwise, load the existing one.
+            $this->classMap = include $this->classMapPath;
+        } else {
+            if (apcu_exists($this->cacheKey)) {
+                $map = apcu_fetch($this->cacheKey);
+                if (is_array($map)) {
+                    $this->classMap = $map;
                 }
+            } else {
+                $classMap = $this->generateMap();
+                $this->classMap = $classMap->getMap();
+                $this->saveMap();
+                return;
             }
-
-            $classMap = $generator->getClassMap();
-            $classMap->sort();
-
-            $this->classMap = $classMap->getMap();
-            $this->saveMap();
-            return;
         }
-        $this->classMap = include $this->classMapPath;
+    }
+
+    /**
+     * Deletes the existing classmap. Does not automatically create a new one.
+     */
+    public function resetClassMap(): void
+    {
+        switch ($this->cacheType) {
+            case self::apcuCache:
+                @apcu_delete($this->cacheKey);
+                break;
+            case self::fileCache:
+                @unlink($this->classMapPath);
+                break;
+        }
+        $this->classMap = [];
     }
 
     /**
      * Registers the autoloader.
-     * 
-     * @return void
-     * */
+     */
     public function register(): void
     {
         spl_autoload_register(array($this, 'autoload'));
@@ -76,9 +155,7 @@ class AntLoader
 
     /**
      * Un-registers the autoloader.
-     * 
-     * @return void
-     * */
+     */
     public function unRegister(): void
     {
         spl_autoload_unregister(array($this, 'autoload'));
@@ -90,9 +167,8 @@ class AntLoader
      * @param string $namespace Use an empty string to allow this path to apply for all namespaces and classes. Paths must already have directory separators normalized for the current system.
      * @param string $path Base path associated with the namespace.
      * @param string $type (optional) The type of PSR autoloader to associate with the namespace defaults to a PSR-4 autoloader. (accepts psr4 or psr0)
-     * @return void
      */
-    public function addPrefix(string $namespace, string $path, string $type = 'psr4'): void
+    public function addNamespace(string $namespace, string $path, string $type = 'psr4'): void
     {
         //The loader assumes the path does NOT end in a directory separator, so let's remove it now.
         if (str_ends_with($path, DIRECTORY_SEPARATOR)) {
@@ -117,7 +193,6 @@ class AntLoader
      * The autoloder function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
      * 
      * @param string $class Classname to load. If found, file will be included and execution will be completed.
-     * @return void
      */
     public function autoload(string $class): void
     {
@@ -125,6 +200,11 @@ class AntLoader
         $file = $this->classMap[$class] ?? '';
         if (file_exists($file)) {
             require_once $file;
+            return;
+        }
+
+        // If this configuration option is set to 'true', AntLoader will stop searching for a class after checking the classmap.
+        if ($this->stopIfNotFound) {
             return;
         }
 
@@ -192,18 +272,43 @@ class AntLoader
 
     /**
      * Saves the current classMap array to the cache folder for later access.
-     * 
-     * @return void
      */
     private function saveMap(): void
     {
-        // If the classmap path isn't defined, don't try to save to it.
-        if (empty($this->classMapPath)) {
+        if ($this->cacheType === self::noCache) {
             return;
         }
 
-        $output = '<?php ' . PHP_EOL;
-        $output .= 'return ' . var_export($this->classMap, true) . ';';
-        @file_put_contents($this->classMapPath, $output);
+        if ($this->cacheType === self::fileCache) {
+            $output = '<?php ' . PHP_EOL;
+            $output .= 'return ' . var_export($this->classMap, true) . ';';
+            @file_put_contents($this->classMapPath, $output);
+        } else {
+            apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
+        }
+    }
+
+    /**
+     * Uses the composer ClassMapGenerator function to generate a classmap for the configured paths and then returns it.
+     */
+    private function generateMap(): ClassMap
+    {
+        $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
+
+        foreach ($this->psr0 as $paths) {
+            foreach ($paths as $path) {
+                $generator->scanPaths($path);
+            }
+        }
+
+        foreach ($this->psr4 as $paths) {
+            foreach ($paths as $path) {
+                $generator->scanPaths($path);
+            }
+        }
+
+        $classMap = $generator->getClassMap();
+        $classMap->sort();
+        return $classMap;
     }
 }
