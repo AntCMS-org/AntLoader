@@ -56,13 +56,13 @@ class AntLoader
         if (empty($config['key'])) {
             $generatedID = 'AntLoader_' . hash('md5', __DIR__);
         } else {
-            $generatedID = $config['key'];
+            $generatedID = (string) $config['key'];
         }
 
         if (empty($config['path'])) {
             $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
         } else {
-            $this->classMapPath = $config['path'];
+            $this->classMapPath = (string) $config['path'];
         }
 
         $cacheOptions = [
@@ -82,14 +82,14 @@ class AntLoader
         ];
 
         if (array_key_exists($config['mode'], $cacheOptions)) {
-            $this->cacheType = $cacheOptions[$config['mode']]['type'];
-            $this->cacheKey = $cacheOptions[$config['mode']]['key'] ?? '';
+            $this->cacheType = (int) $cacheOptions[$config['mode']]['type'];
+            $this->cacheKey = (string) $cacheOptions[$config['mode']]['key'] ?? '';
         } else {
             throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
         }
 
-        $this->cacheTtl = $config['ttl'];
-        $this->stopIfNotFound = $config['stopIfNotFound'];
+        $this->cacheTtl = (int) $config['ttl'];
+        $this->stopIfNotFound = (bool) $config['stopIfNotFound'];
     }
 
     /**
@@ -129,7 +129,7 @@ class AntLoader
     }
 
     /**
-     * Deletes the existing classmap.
+     * Deletes the existing classmap. Does not automatically create a new one.
      */
     public function resetClassMap(): void
     {
@@ -287,6 +287,9 @@ class AntLoader
         }
     }
 
+    /**
+     * Uses the composer ClassMapGenerator function to generate a classmap for the configured paths and then returns it.
+     */
     private function generateMap(): ClassMap
     {
         $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
