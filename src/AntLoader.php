@@ -31,7 +31,7 @@ class AntLoader
     /**
      * Creates a new instance of AntLoader.
      *
-     * @param array<string,mixed> $config (optional) Configuration options for AntLoader.
+     * @param array{mode?:string,path?:string,key?:string,ttl?:int,stopIfNotFound?:bool} $config (optional) Configuration options for AntLoader.
      *   Available keys:
      *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none'.
      *   - 'path': Where to save the classmap to. By default, this will be saved to a random temp file.
@@ -56,13 +56,13 @@ class AntLoader
         if (empty($config['key'])) {
             $generatedID = 'AntLoader_' . hash('md5', __FILE__);
         } else {
-            $generatedID = strval($config['key']); // @phpstan-ignore-line
+            $generatedID = $config['key'];
         }
 
         if (empty($config['path'])) {
             $this->classMapPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $generatedID;
         } else {
-            $this->classMapPath = strval($config['path']); // @phpstan-ignore-line
+            $this->classMapPath = $config['path'];
         }
 
         $cacheOptions = [
@@ -81,7 +81,6 @@ class AntLoader
             ]
         ];
 
-        // @phpstan-ignore-next-line
         if (array_key_exists($config['mode'], $cacheOptions)) {
             $this->cacheType = intval($cacheOptions[$config['mode']]['type']);
             $this->cacheKey = strval($cacheOptions[$config['mode']]['key'] ?? '');
@@ -89,7 +88,7 @@ class AntLoader
             throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
         }
 
-        $this->cacheTtl = intval($config['ttl']); // @phpstan-ignore-line
+        $this->cacheTtl = $config['ttl'];
         $this->stopIfNotFound = (bool) $config['stopIfNotFound'];
     }
 
