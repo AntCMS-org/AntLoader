@@ -54,7 +54,7 @@ class AntLoader
         $config = array_merge($defaultConfig, $config);
 
         if (empty($config['key'])) {
-            $generatedID = 'AntLoader_' . hash('md5', __DIR__);
+            $generatedID = 'AntLoader_' . hash('md5', __FILE__);
         } else {
             $generatedID = strval($config['key']); // @phpstan-ignore-line
         }
@@ -99,33 +99,32 @@ class AntLoader
      */
     public function checkClassMap(): void
     {
-        if ($this->cacheType === self::noCache) {
-            return;
-        }
-
-        if ($this->cacheType === self::fileCache) {
-            // If the classmap doesn't yet exist, generate a new one now.
-            if (!file_exists($this->classMapPath)) {
-                $classMap = $this->generateMap();
-                $this->classMap = $classMap->getMap();
-                $this->saveMap();
+        switch ($this->cacheType) {
+            case self::noCache:
                 return;
-            }
-
-            // Otherwise, load the existing one.
-            $this->classMap = include $this->classMapPath;
-        } else {
-            if (apcu_exists($this->cacheKey)) {
-                $map = apcu_fetch($this->cacheKey);
-                if (is_array($map)) {
-                    $this->classMap = $map;
+            case self::fileCache:
+                // If the classmap doesn't yet exist, generate a new one now.
+                if (!file_exists($this->classMapPath)) {
+                    $classMap = $this->generateMap();
+                    $this->classMap = $classMap->getMap();
+                    $this->saveMap();
+                } else {
+                    // Otherwise, load the existing one.
+                    $this->classMap = include $this->classMapPath;
                 }
-            } else {
-                $classMap = $this->generateMap();
-                $this->classMap = $classMap->getMap();
-                $this->saveMap();
                 return;
-            }
+            case self::apcuCache:
+                if (apcu_exists($this->cacheKey)) {
+                    $map = apcu_fetch($this->cacheKey);
+                    if (is_array($map)) {
+                        $this->classMap = $map;
+                    }
+                } else {
+                    $classMap = $this->generateMap();
+                    $this->classMap = $classMap->getMap();
+                    $this->saveMap();
+                }
+                return;
         }
     }
 
@@ -147,10 +146,12 @@ class AntLoader
 
     /**
      * Registers the autoloader.
+     * @param bool $prepend (optional) Set to true to cause the autoloader to be added to the start of the PHP autoloader list.
+     *                     This will make AntLoader take priority over other autoloaders.
      */
-    public function register(): void
+    public function register(bool $prepend = false): void
     {
-        spl_autoload_register(array($this, 'autoload'));
+        spl_autoload_register(array($this, 'autoload'), true, $prepend);
     }
 
     /**
@@ -203,7 +204,6 @@ class AntLoader
             return;
         }
 
-        // If this configuration option is set to 'true', AntLoader will stop searching for a class after checking the classmap.
         if ($this->stopIfNotFound) {
             return;
         }
@@ -275,16 +275,17 @@ class AntLoader
      */
     private function saveMap(): void
     {
-        if ($this->cacheType === self::noCache) {
-            return;
-        }
-
-        if ($this->cacheType === self::fileCache) {
-            $output = '<?php ' . PHP_EOL;
-            $output .= 'return ' . var_export($this->classMap, true) . ';';
-            @file_put_contents($this->classMapPath, $output);
-        } else {
-            apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
+        switch ($this->cacheType) {
+            case self::noCache:
+                return;
+            case self::fileCache:
+                $output = '<?php ' . PHP_EOL;
+                $output .= 'return ' . var_export($this->classMap, true) . ';';
+                @file_put_contents($this->classMapPath, $output);
+                break;
+            case self::fileCache:
+                apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
+                break;
         }
     }
 
