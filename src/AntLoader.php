@@ -141,6 +141,7 @@ class AntLoader
                 @unlink($this->classMapPath);
                 break;
         }
+
         $this->classMap = [];
     }
 
@@ -282,10 +283,10 @@ class AntLoader
                 $output = '<?php ' . PHP_EOL;
                 $output .= 'return ' . var_export($this->classMap, true) . ';';
                 @file_put_contents($this->classMapPath, $output);
-                break;
+                return;
             case self::fileCache:
                 apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
-                break;
+                return;
         }
     }
 

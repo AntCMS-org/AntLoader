@@ -25,7 +25,7 @@ $loader = new AntCMS\AntLoader(); // Create AntLoader with it's default options.
 $loader->addNamespace('', 'somepath', 'psr0'); //Add a path for a PSR-0 autoloader, by providing an empty string it'll search for all classes in this path.
 $loader->addNamespace('Example\\Class\\', 'someotherpath'); //Add a path for a PSR-4 autoloader, which will only search in that directory for the "Example\Class" namespace.
 $loader->checkClassMap(); // Create a new classmap if it doesn't already exist. If it does, load it now.
-$loader->register(); // Register the autoloader within PHP.
+$loader->register(); // Register the autoloader within PHP. Optionally pass 'true' to this to prepend AntLoader to the start of the autoloader list. PHP will then use AntLoader first when attempting to load classes.
 
 $loader->resetClassMap(); // Reset the classmap, clearing the existing one out from whatever is the current caching method. Will not regenerate one automatically.
 ```
@@ -80,10 +80,12 @@ Here are some details about the filesystem caching method:
 ## Notes
 
 ### Performance
-While it's not strictly necessary to use the classmap functionality, we strongly recommend doing so for optimal performance. In our tests, we found that using the classmap resulted in significant speed improvements:
-
-- Software RAID 0 SSD Array: 85% faster, reducing the time it took to instance 1000 random classes from 0.0691 seconds to 0.01 seconds.
-- Standard HDD: 91% faster, reducing the time it took to instance 1000 random classes from 0.0796 seconds to 0.0072 seconds.
+ - While it's not strictly necessary to use the classmap functionality, we strongly recommend doing so for optimal performance. 
+   - Testing shows that it reduces the time to find and load `1000` random classes by `95%` (from `0.0699` seconds to `0.0037` seconds)
+ - Depending on the setup, prepending AntLoader may speed up the performance of your application.
+  - For example, if you are using composer's autoloader and have a lot of composer packages, that may delay the time it takes to load classes within your application.
+    - In this example, the classes inside of your application will load slightly faster and classes loaded through composer will be slightly slower.
+  - Potential improvements are highly dependent on the specific application and enviroment. In most situations, the difference is likely to be very minimal.
 
 So, we encourage you to take advantage of the classmap feature to get the best performance out of your application.
 
