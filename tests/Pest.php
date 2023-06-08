@@ -3,30 +3,17 @@ function setupLoader(bool $cache = false)
 {
     $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR;
 
-    if ($cache) {
-        $config = [
-            'mode' => 'auto',
-        ];
-    } else {
-        $config = [
-            'mode' => 'none',
-        ];
-    }
+    $config = [
+        'mode' => $cache ? 'auto' :'none',
+    ];
 
     $loader = new AntCMS\AntLoader($config);
     $loader->addNamespace('',  $pathClasses . 'PSR0', 'psr0');
     $loader->addNamespace('', $pathClasses . 'PSR4');
     $loader->addNamespace('', $pathClasses . 'Random');
     $loader->checkClassMap();
-    $loader->register();
+    $loader->register(true);
     return $loader;
-}
-
-function removeClassMap()
-{
-    $loader = new AntCMS\AntLoader();
-    $loader->resetClassMap();
-    $loader->unRegister();
 }
 
 

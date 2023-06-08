@@ -29,7 +29,7 @@ test('classMap', function () {
     $loader = setupLoader();
 
     // Test class loading without class map
-    removeClassMap();
+    $loader->resetClassMap();
     $start = microtime(true);
     foreach ($classes as $class) {
         expect(class_exists($class))->toBeTrue();
@@ -44,7 +44,11 @@ test('classMap', function () {
     // Test class loading with class map
     deleteRandomClasses();
     $classes = createRandomClasses(1000);
+
     $loader = setupLoader(true);
+    $loader->resetClassMap(); // Ensure we don't have an old class map
+    $loader->checkClassMap();
+
     $start = microtime(true);
     foreach ($classes as $class) {
         expect(class_exists($class))->toBeTrue();
@@ -56,7 +60,7 @@ test('classMap', function () {
     $withMap = $totalTime / 10;
 
     // Clean up and output result
-    removeClassMap();
+    $loader->resetClassMap();
     deleteRandomClasses();
     expect($withMap)->toBeLessThan($withoutMap);
 });
