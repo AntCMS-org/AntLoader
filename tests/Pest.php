@@ -1,15 +1,21 @@
 <?php
-function setupLoader(bool $cache = false)
+function setupLoader(string $cache = 'none', string $key = '', string $path = '', bool $stopIfNotFound = false)
 {
     $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR;
+    if (!file_exists($pathClasses . DIRECTORY_SEPARATOR . 'Random')) {
+        mkdir($pathClasses . DIRECTORY_SEPARATOR . 'Random');
+    }
 
     $config = [
-        'mode' => $cache ? 'auto' :'none',
+        'mode' => $cache,
+        'key'  => $key,
+        'path' => $path,
+        'stopIfNotFound' => $stopIfNotFound,
     ];
 
     $loader = new AntCMS\AntLoader($config);
     $loader->addNamespace('',  $pathClasses . 'PSR0', 'psr0');
-    $loader->addNamespace('', $pathClasses . 'PSR4');
+    $loader->addNamespace('', $pathClasses . 'PSR4' . DIRECTORY_SEPARATOR); // Adding an extra directory seperator to the end to verify it's correctly handled
     $loader->addNamespace('', $pathClasses . 'Random');
     $loader->checkClassMap();
     $loader->register(true);
