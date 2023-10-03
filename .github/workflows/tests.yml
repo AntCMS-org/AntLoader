@@ -28,11 +28,4 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Tests
-        run: ./vendor/bin/pest --coverage-cobertura coverage.cobertura.xml
-
-      - name: Code Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: coverage.cobertura.xml
-          badge: true
-
+        run: ./vendor/bin/pest --coverage --min=90

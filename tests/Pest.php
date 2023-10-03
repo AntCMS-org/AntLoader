@@ -2,6 +2,9 @@
 function setupLoader(string $cache = 'none', string $key = '', string $path = '', bool $stopIfNotFound = false)
 {
     $pathClasses = __DIR__ . DIRECTORY_SEPARATOR . 'Classes' . DIRECTORY_SEPARATOR;
+    if (!file_exists($pathClasses . DIRECTORY_SEPARATOR . 'Random')) {
+        mkdir($pathClasses . DIRECTORY_SEPARATOR . 'Random');
+    }
 
     $config = [
         'mode' => $cache,
