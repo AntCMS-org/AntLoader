@@ -1,5 +1,10 @@
 # AntLoader
 
+
+[![Packagist Downloads](https://img.shields.io/packagist/dt/antcms/antloader)](https://packagist.org/packages/antcms/antloader)
+[![PHP Tests](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml/badge.svg)](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml)
+[![PHPStan](https://github.com/AntCMS-org/AntLoader/actions/workflows/phpstan.yml/badge.svg)](https://github.com/AntCMS-org/AntLoader/actions/workflows/phpstan.yml)
+
 A small, simple, and highly performant autoloader for PHP applications.
 
 - Supports at least PHP 8.0
@@ -31,8 +36,8 @@ $loader->resetClassMap(); // Reset the classmap, clearing the existing one out f
 ```
 
 ## Configuration
-AntLoader accepts uses an array to configure it's available options.
-None of the configuration options are required, however at a minimum it is recommended to specify a path unless you know APCu will be usable in all enviroments for your application.
+AntLoader accepts an array to configure it's available options.
+None of the configuration options are required, however at a minimum it is recommended to specify a path unless you know APCu will be usable in all environments for your application.
 **Note**: Please read the "Classmap Caching Options" section of this document, as that covers the strengths and weaknesses of each caching approach.
 
 ```PHP
@@ -64,7 +69,7 @@ This feature allows AntLoader to achieve optimal performance by persisting the c
 Here are a few things to note about the APCu mode:
 
  - AntLoader generates a random key based on the directory it resides in. This ensures a unique key name to avoid accidentally overwriting APCu keys. The generated key remains static throughout the lifespan of the application.
-   - As long as you aren't running two seperate PHP applications & using the same copy of AntLoader (which you shouldn't be), this is sufficient to prevent issues.
+   - As long as you aren't running two separate PHP applications & using the same copy of AntLoader (which you shouldn't be), this is sufficient to prevent issues.
  - Depending on your web server configuration, using APCu may allow the classmap to be accessed by other PHP applications. However, in the case of AntLoader, this information only includes the namespaces/classes within your application and their respective paths.
  - By default, AntLoader stores the classmap with APCu using a Time-to-Live (TTL) of 7 days.
 
@@ -75,7 +80,7 @@ Here are some details about the filesystem caching method:
 
  - By default, AntLoader saves the classmap to the system's temporary directory, which may not survive through multiple sessions. It is recommended to override the default path and specify a more persistent location.
  - The classmap file stored in the filesystem has no lifespan limit imposed by AntLoader. It will be retained until either you delete the file or call the `resetClassMap` function.
- - Clearing or resetting the classmap is generally easier to perform outside of calling the resetClassMap function provided by AntLoader.
+ - Clearing or resetting the classmap is generally easier to perform outside of calling the `resetClassMap` function provided by AntLoader.
 
 ## Notes
 
@@ -85,14 +90,18 @@ Here are some details about the filesystem caching method:
  - Depending on the setup, prepending AntLoader may speed up the performance of your application.
    - For example, if you are using composer's autoloader and have a lot of composer packages, that may delay the time it takes to load classes within your application.
      - In this example, the classes inside of your application will load slightly faster and classes loaded through composer will be slightly slower.
-   - Potential improvements are highly dependent on the specific application and enviroment. In most situations, the difference is likely to be very minimal.
+   - Potential improvements are highly dependent on the specific application and environment. In most situations, the difference is likely to be very minimal.
 
 So, we encourage you to take advantage of the classmap feature to get the best performance out of your application.
 
 ### Maintaining AntLoader
-AntLoader is generally hands-off, except that we highly recomend clearing out / resetting the classmap after updating your application.
+AntLoader is generally hands-off, except that we highly recommend clearing out / resetting the classmap after updating your application.
 AntLoader will **never** remove outdated classes / paths from the classmap, so never allowing it to be rebuilt can negatively affect the performance of your application if classes are renamed or moved.
 The best way to do this is simply to call the `resetClassMap` function that AntLoader provides. This will automatically reset the classmap for the current Cache method.
+
+#### Pruning the classmap
+If you have an application where the class list may periodically change, you can prune the classmap periodically to ensure it's not filling up with classes that no longer exist.
+To do so, simply call `pruneClassmap`. This function will return the number of pruned classes.
 
 ## License
 

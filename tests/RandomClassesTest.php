@@ -131,3 +131,17 @@ test('Classmap with APCu updating classmap', function () {
     $loader->resetClassMap();
     deleteRandomClasses();
 });
+
+test('Prune classmap', function () {
+    // Test class loading with class map
+    deleteRandomClasses();
+    createRandomClasses(10);
+
+    $loader = setupLoader('filesystem');
+    $loader->resetClassMap();
+    $loader->checkClassMap();
+
+    deleteRandomClasses();
+
+    expect($loader->pruneClassmap())->toEqual(10);
+});

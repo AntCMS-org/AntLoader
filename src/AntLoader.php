@@ -10,13 +10,13 @@ class AntLoader
 {
     private string $classMapPath = '';
 
-    /** @var array<string,array<string>> **/
+    /** @var array<string,array<string>> */
     private array $psr0 = [];
 
-    /** @var array<string,array<string>> **/
+    /** @var array<string,array<string>> */
     private array $psr4 = [];
 
-    /** @var array<string,string> **/
+    /** @var array<string,string> */
     private array $classMap = [];
 
     private int $cacheType = 0;
@@ -249,6 +249,28 @@ class AntLoader
                 }
             }
         }
+    }
+
+    /**
+     * Prunes the classmap cache of any non-existant classes
+     * 
+     * @return int The number of classes that was pruned.
+     */
+    public function pruneClassmap(): int
+    {
+        $pruned = 0;
+        foreach ($this->classMap as $class => $path) {
+            if (!file_exists($path)) {
+                $pruned++;
+                unset($this->classMap[$class]);
+            }
+        }
+
+        if ($pruned > 0) {
+            $this->saveMap();
+        }
+
+        return $pruned;
     }
 
     /**
