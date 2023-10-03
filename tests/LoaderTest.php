@@ -1,19 +1,39 @@
 <?php
 
 test('PSR4Loader', function () {
-    $loader = setupLoader();
+    $cacheModes = ['none', 'auto', 'filesystem', 'apcu'];
     $psr4Classes = ['Class1', 'Class2', 'Namespace1\Class1'];
 
-    foreach ($psr4Classes as $class) {
-        expect(class_exists($class))->toBeTrue();
-        $classInstance = new $class();
-        expect($class)->toEqual($classInstance->testResult());
+    foreach ($cacheModes as $mode) {
+        setupLoader($mode);
+
+        foreach ($psr4Classes as $class) {
+            expect(class_exists($class))->toBeTrue();
+            $classInstance = new $class();
+            expect($class)->toEqual($classInstance->testResult());
+        }
     }
 });
 
 test('PSR0Loader', function () {
-    $loader = setupLoader();
+    $cacheModes = ['none', 'auto', 'filesystem', 'apcu'];
     $psr4Classes = ['Test_Class1'];
+
+    foreach ($cacheModes as $mode) {
+        setupLoader($mode, 'exampleKey');
+
+        foreach ($psr4Classes as $class) {
+            expect(class_exists($class))->toBeTrue();
+            $classInstance = new $class();
+            expect($class)->toEqual($classInstance->testResult());
+        }
+    }
+});
+
+test('APCUWithKey', function () {
+    $psr4Classes = ['Test_Class1'];
+
+    setupLoader('apcu', 'exampleKey');
 
     foreach ($psr4Classes as $class) {
         expect(class_exists($class))->toBeTrue();
@@ -22,45 +42,24 @@ test('PSR0Loader', function () {
     }
 });
 
-test('classMap', function () {
-    // Prepare test data
-    deleteRandomClasses();
-    $classes = createRandomClasses(1000);
-    $loader = setupLoader();
+test('FilesystemWithPath', function () {
+    $psr4Classes = ['Test_Class1'];
+    $path = tempnam(sys_get_temp_dir(), 'classmap') . '.php';
 
-    // Test class loading without class map
-    $loader->resetClassMap();
-    $start = microtime(true);
-    foreach ($classes as $class) {
+    setupLoader('filesystem', '', $path);
+
+    foreach ($psr4Classes as $class) {
         expect(class_exists($class))->toBeTrue();
         $classInstance = new $class();
         expect($class)->toEqual($classInstance->testResult());
     }
-    $end = microtime(true);
-    $totalTime = $end - $start;
-    $withoutMap = $totalTime / 10;
-    $loader->unRegister();
+});
 
-    // Test class loading with class map
-    deleteRandomClasses();
-    $classes = createRandomClasses(1000);
+test('StopIfNotFound', function () {
+    $psr4Classes = ['Does_not_exist'];
+    setupLoader('filesystem', '', '', true);
 
-    $loader = setupLoader(true);
-    $loader->resetClassMap(); // Ensure we don't have an old class map
-    $loader->checkClassMap();
-
-    $start = microtime(true);
-    foreach ($classes as $class) {
-        expect(class_exists($class))->toBeTrue();
-        $classInstance = new $class();
-        expect($class)->toEqual($classInstance->testResult());
+    foreach ($psr4Classes as $class) {
+        expect(class_exists($class))->toBeFalse();
     }
-    $end = microtime(true);
-    $totalTime = $end - $start;
-    $withMap = $totalTime / 10;
-
-    // Clean up and output result
-    $loader->resetClassMap();
-    deleteRandomClasses();
-    expect($withMap)->toBeLessThan($withoutMap);
 });
