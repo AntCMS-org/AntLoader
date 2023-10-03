@@ -77,7 +77,8 @@ class AntLoader
                 'type' => self::fileCache
             ],
             'apcu' => [
-                'type' => self::apcuCache
+                'type' => self::apcuCache,
+                'key' => $generatedID
             ]
         ];
 
@@ -283,7 +284,7 @@ class AntLoader
                 $output .= 'return ' . var_export($this->classMap, true) . ';';
                 @file_put_contents($this->classMapPath, $output);
                 return;
-            case self::fileCache:
+            case self::apcuCache:
                 apcu_store($this->cacheKey, $this->classMap, $this->cacheTtl);
                 return;
         }
