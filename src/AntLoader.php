@@ -252,6 +252,28 @@ class AntLoader
     }
 
     /**
+     * Prunes the classmap cache of any non-existant classes
+     * 
+     * @return int The number of classes that was pruned.
+     */
+    public function pruneClassmap(): int
+    {
+        $pruned = 0;
+        foreach ($this->classMap as $class => $path) {
+            if (!file_exists($path)) {
+                $pruned++;
+                unset($this->classMap[$class]);
+            }
+        }
+
+        if ($pruned > 0) {
+            $this->saveMap();
+        }
+
+        return $pruned;
+    }
+
+    /**
      * @param string $class Classname, after having any specialized handling performed
      * @param string $path The path associated with the namespace
      * @param string $namespace The namespace matching the classname.
