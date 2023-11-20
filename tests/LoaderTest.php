@@ -1,7 +1,7 @@
 <?php
 
 test('PSR4Loader', function () {
-    $cacheModes = ['none', 'auto', 'filesystem', 'apcu'];
+    $cacheModes = ['none', 'auto', 'filesystem', 'apcu', 'memory'];
     $psr4Classes = ['Class1', 'Class2', 'Namespace1\Class1'];
 
     foreach ($cacheModes as $mode) {
@@ -16,7 +16,7 @@ test('PSR4Loader', function () {
 });
 
 test('PSR0Loader', function () {
-    $cacheModes = ['none', 'auto', 'filesystem', 'apcu'];
+    $cacheModes = ['none', 'auto', 'filesystem', 'apcu', 'memory'];
     $psr4Classes = ['Test_Class1'];
 
     foreach ($cacheModes as $mode) {

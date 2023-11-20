@@ -25,15 +25,16 @@ class AntLoader
     private bool $stopIfNotFound = false;
 
     const noCache   = 0;
-    const fileCache = 1;
-    const apcuCache = 2;
+    const inMemory  = 1;
+    const fileCache = 2;
+    const apcuCache = 3;
 
     /**
      * Creates a new instance of AntLoader.
      *
      * @param array{mode?:string,path?:string,key?:string,ttl?:int,stopIfNotFound?:bool} $config (optional) Configuration options for AntLoader.
      *   Available keys:
-     *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', or 'none'.
+     *   - 'mode': What mode to use for storing the classmap. Can be 'auto', 'filesystem', 'apcu', 'memory', or 'none'.
      *   - 'path': Where to save the classmap to. By default, this will be saved to a random temp file.
      *             If you are using the file system cache, it is recommended to manually specify this path to one that is persistent between sessions.
      *   - 'key': Use this option to override the unique key that AntLoader uses with its cache.
@@ -71,14 +72,17 @@ class AntLoader
             ],
             'auto' => [
                 'type' => extension_loaded('apcu') && apcu_enabled() ? self::apcuCache : self::fileCache,
-                'key' => $generatedID
+                'key'  => $generatedID
             ],
             'filesystem' => [
                 'type' => self::fileCache
             ],
             'apcu' => [
                 'type' => self::apcuCache,
-                'key' => $generatedID
+                'key'  => $generatedID
+            ],
+            'memory' => [
+                'type' => self::inMemory,
             ]
         ];
 
@@ -86,7 +90,7 @@ class AntLoader
             $this->cacheType = intval($cacheOptions[$config['mode']]['type']);
             $this->cacheKey = strval($cacheOptions[$config['mode']]['key'] ?? '');
         } else {
-            throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
+            throw new \Exception("Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', 'memory', or 'none'.");
         }
 
         $this->cacheTtl = $config['ttl'];
@@ -100,6 +104,10 @@ class AntLoader
     public function checkClassMap(): void
     {
         switch ($this->cacheType) {
+            case self::inMemory:
+                $classMap = $this->generateMap();
+                $this->classMap = $classMap->getMap();
+                return;
             case self::noCache:
                 return;
             case self::fileCache:
@@ -299,6 +307,7 @@ class AntLoader
     private function saveMap(): void
     {
         switch ($this->cacheType) {
+            case self::inMemory:
             case self::noCache:
                 return;
             case self::fileCache:
