@@ -6,4 +6,4 @@ it('Throws unknown PSR autoloader', function () {
 
 it('Throws unknown caching type', function () {
     $loader = new \AntCMS\AntLoader(['mode' => 'invalid']);
-})->throws(Exception::class, "Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', or 'none'.");
+})->throws(Exception::class, "Unsupported cache mode. Please ensure you are specifying 'auto', 'filesystem', 'apcu', 'memory', or 'none'.");
