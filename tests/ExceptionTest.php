@@ -1,4 +1,5 @@
 <?php
+
 it('Throws unknown PSR autoloader', function () {
     $loader = new \AntCMS\AntLoader();
     $loader->addNamespace('', '', 'psr14');

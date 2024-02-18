@@ -49,7 +49,7 @@ class AntLoader
             'path' => '',
             'key' => '',
             'ttl' => 604800,
-            'stopIfNotFound' => false
+            'stopIfNotFound' => false,
         ];
 
         $config = array_merge($defaultConfig, $config);
@@ -68,22 +68,22 @@ class AntLoader
 
         $cacheOptions = [
             'none' => [
-                'type' => self::noCache
+                'type' => self::noCache,
             ],
             'auto' => [
                 'type' => extension_loaded('apcu') && apcu_enabled() ? self::apcuCache : self::fileCache,
-                'key'  => $generatedID
+                'key'  => $generatedID,
             ],
             'filesystem' => [
-                'type' => self::fileCache
+                'type' => self::fileCache,
             ],
             'apcu' => [
                 'type' => self::apcuCache,
-                'key'  => $generatedID
+                'key'  => $generatedID,
             ],
             'memory' => [
                 'type' => self::inMemory,
-            ]
+            ],
         ];
 
         if (array_key_exists($config['mode'], $cacheOptions)) {
@@ -173,7 +173,7 @@ class AntLoader
 
     /**
      * Registers a namepsace and an associated path to look in.
-     * 
+     *
      * @param string $namespace Use an empty string to allow this path to apply for all namespaces and classes. Paths must already have directory separators normalized for the current system.
      * @param string $path Base path associated with the namespace.
      * @param string $type (optional) The type of PSR autoloader to associate with the namespace defaults to a PSR-4 autoloader. (accepts psr4 or psr0)
@@ -201,7 +201,7 @@ class AntLoader
 
     /**
      * The autoloder function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
-     * 
+     *
      * @param string $class Classname to load. If found, file will be included and execution will be completed.
      */
     public function autoload(string $class): void
@@ -261,7 +261,7 @@ class AntLoader
 
     /**
      * Prunes the classmap cache of any non-existant classes
-     * 
+     *
      * @return int The number of classes that was pruned.
      */
     public function pruneClassmap(): int
@@ -326,7 +326,7 @@ class AntLoader
      */
     private function generateMap(): ClassMap
     {
-        $generator = new \Composer\ClassMapGenerator\ClassMapGenerator;
+        $generator = new \Composer\ClassMapGenerator\ClassMapGenerator();
 
         foreach ($this->psr0 as $paths) {
             foreach ($paths as $path) {
