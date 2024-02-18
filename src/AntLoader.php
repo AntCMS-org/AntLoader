@@ -24,10 +24,10 @@ class AntLoader
     private int $cacheTtl = 604800; // 1 Week in seconds.
     private bool $stopIfNotFound = false;
 
-    const noCache   = 0;
-    const inMemory  = 1;
-    const fileCache = 2;
-    const apcuCache = 3;
+    public const noCache   = 0;
+    public const inMemory  = 1;
+    public const fileCache = 2;
+    public const apcuCache = 3;
 
     /**
      * Creates a new instance of AntLoader.
@@ -160,7 +160,7 @@ class AntLoader
      */
     public function register(bool $prepend = false): void
     {
-        spl_autoload_register(array($this, 'autoload'), true, $prepend);
+        spl_autoload_register([$this, 'autoload'], true, $prepend);
     }
 
     /**
@@ -168,7 +168,7 @@ class AntLoader
      */
     public function unRegister(): void
     {
-        spl_autoload_unregister(array($this, 'autoload'));
+        spl_autoload_unregister([$this, 'autoload']);
     }
 
     /**

@@ -51,7 +51,7 @@ function createRandomClasses(int $count = 250): array
     $classes = [];
 
     for ($i = 0; $i < $count; $i++) {
-        $namespace = 'Random' . substr(md5(rand()), 0, 8);
+        $namespace = 'Random' . substr(md5(random_int(0, mt_getrandmax())), 0, 8);
         $classname = 'Class' . $i;
 
         $classContent = strtr($classTemplate, [

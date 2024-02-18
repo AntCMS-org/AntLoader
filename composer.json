@@ -25,6 +25,7 @@
     },
     "require-dev": {
         "pestphp/pest": "^1.23",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10",
+        "rector/rector": "1.0.0"
     }
 }

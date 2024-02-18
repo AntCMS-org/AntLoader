@@ -2,7 +2,7 @@
 
 test('PSR4Loader', function () {
     $cacheModes = ['none', 'auto', 'filesystem', 'apcu', 'memory'];
-    $psr4Classes = ['Class1', 'Class2', 'Namespace1\Class1'];
+    $psr4Classes = ['Class1', 'Class2', \Namespace1\Class1::class];
 
     foreach ($cacheModes as $mode) {
         setupLoader($mode);
