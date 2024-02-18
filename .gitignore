@@ -8,3 +8,4 @@ composer.phar
 tests/Cache/classMap.php
 tests/Classes/Random/
 coverage-report/
+.php-cs-fixer.cache
