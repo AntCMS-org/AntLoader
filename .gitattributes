@@ -6,3 +6,6 @@
 /.gitignore export-ignore
 /phpstan.neon export-ignore
 /phpunit.xml export-ignore
+/rector.php export-ignore
+/.php-cs-fixer.php export-ignore
+/composer.lock export-ignore
