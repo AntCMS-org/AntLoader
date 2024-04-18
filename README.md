@@ -1,8 +1,8 @@
 # AntLoader
 
+![PHPStan Level](https://img.shields.io/badge/PHPStan-level%209-brightgreen)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/antcms/antloader)](https://packagist.org/packages/antcms/antloader)
 [![PHP Tests](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml/badge.svg)](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml)
-[![PHPStan](https://github.com/AntCMS-org/AntLoader/actions/workflows/phpstan.yml/badge.svg)](https://github.com/AntCMS-org/AntLoader/actions/workflows/phpstan.yml)
 
 A small, simple, and highly performant autoloader for PHP applications.
 
