@@ -1,4 +1,4 @@
-name: PHP Tests
+name: Tests
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ["8.0", "8.1", "8.2", "8.3"]
+        php-version: ["8.0", "8.1", "8.2", "8.3", "8.4"]
 
     steps:
       - name: Checkout
@@ -29,3 +29,15 @@ jobs:
 
       - name: Tests
         run: ./vendor/bin/pest --coverage --min=90
+
+  phpStan:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - uses: actions/checkout@v4
+      - uses: php-actions/composer@v6
+
+      - name: Run PHPStan
+        uses: php-actions/phpstan@v3
+        with:
+          configuration: phpstan.neon
