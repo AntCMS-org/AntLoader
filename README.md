@@ -1,6 +1,7 @@
 # AntLoader
 
 ![PHPStan Level](https://img.shields.io/badge/PHPStan-level%209-brightgreen)
+![Supported PHP Versions](https://img.shields.io/badge/PHP%20Versions-8.0%7C8.1%7C8.2%7C8.3%7C8.4-green)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/antcms/antloader)](https://packagist.org/packages/antcms/antloader)
 [![PHP Tests](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml/badge.svg)](https://github.com/AntCMS-org/AntLoader/actions/workflows/tests.yml)
 
