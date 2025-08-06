@@ -101,54 +101,54 @@ class AntLoader
      * Checks for the existence of the classMap file. Will generate a new one if it doesn't exist.
      * After generating one / if it exists, the map is loaded to the classMap array to be used to speed up loading later.
      */
-public function checkClassMap(): void
-{
-    switch ($this->cacheType) {
-        case self::inMemory:
-            $classMap = $this->generateMap();
-            $this->classMap = $classMap->getMap();
-            return;
+    public function checkClassMap(): void
+    {
+        switch ($this->cacheType) {
+            case self::inMemory:
+                $classMap = $this->generateMap();
+                $this->classMap = $classMap->getMap();
+                return;
 
-        case self::noCache:
-            return;
+            case self::noCache:
+                return;
 
-        case self::fileCache:
-            // If the classmap doesn't yet exist, generate a new one.
-            if (!file_exists($this->classMapPath)) {
+            case self::fileCache:
+                // If the classmap doesn't yet exist, generate a new one.
+                if (!file_exists($this->classMapPath)) {
+                    $classMap = $this->generateMap();
+                    $this->classMap = $classMap->getMap();
+                    $this->saveMap();
+                } else {
+                    // Include the classMap file safely.
+                    $map = @include $this->classMapPath;
+
+                    if (!is_array($map)) {
+                        error_log("AntLoader warning: classMap.php at {$this->classMapPath} did not return a valid array.");
+                        $this->classMap = [];
+                    } else {
+                        $this->classMap = $map;
+                    }
+                }
+                return;
+
+            case self::apcuCache:
+                if (apcu_exists($this->cacheKey)) {
+                    $map = apcu_fetch($this->cacheKey);
+                    if (is_array($map)) {
+                        $this->classMap = $map;
+                        return;
+                    } else {
+                        error_log("AntLoader warning: APCu cache key {$this->cacheKey} returned non-array value.");
+                    }
+                }
+
+                // Fall back to regeneration if APCu doesn't exist or is invalid
                 $classMap = $this->generateMap();
                 $this->classMap = $classMap->getMap();
                 $this->saveMap();
-            } else {
-                // Include the classMap file safely.
-                $map = @include $this->classMapPath;
-
-                if (!is_array($map)) {
-                    error_log("AntLoader warning: classMap.php at {$this->classMapPath} did not return a valid array.");
-                    $this->classMap = [];
-                } else {
-                    $this->classMap = $map;
-                }
-            }
-            return;
-
-        case self::apcuCache:
-            if (apcu_exists($this->cacheKey)) {
-                $map = apcu_fetch($this->cacheKey);
-                if (is_array($map)) {
-                    $this->classMap = $map;
-                    return;
-                } else {
-                    error_log("AntLoader warning: APCu cache key {$this->cacheKey} returned non-array value.");
-                }
-            }
-
-            // Fall back to regeneration if APCu doesn't exist or is invalid
-            $classMap = $this->generateMap();
-            $this->classMap = $classMap->getMap();
-            $this->saveMap();
-            return;
+                return;
+        }
     }
-}
 
     /**
      * Deletes the existing classmap. Does not automatically create a new one.

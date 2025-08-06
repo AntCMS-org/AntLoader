@@ -24,9 +24,9 @@
         }
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.49",
-        "pestphp/pest": "^1.23",
-        "phpstan/phpstan": "^1.10",
-        "rector/rector": "1.0.0"
+        "friendsofphp/php-cs-fixer": "^3.85.1",
+        "pestphp/pest": "^3.8.2",
+        "phpstan/phpstan": "^2.1.22",
+        "rector/rector": "2.1.2"
     }
 }
