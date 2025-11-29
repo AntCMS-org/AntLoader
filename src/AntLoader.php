@@ -126,6 +126,7 @@ class AntLoader
                         error_log("AntLoader warning: classMap.php at {$this->classMapPath} did not return a valid array.");
                         $this->classMap = [];
                     } else {
+                        /** @var array<string,string> $map */
                         $this->classMap = $map;
                     }
                 }
@@ -135,6 +136,7 @@ class AntLoader
                 if (apcu_exists($this->cacheKey)) {
                     $map = apcu_fetch($this->cacheKey);
                     if (is_array($map)) {
+                        /** @var array<string,string> $map */
                         $this->classMap = $map;
                         return;
                     } else {
@@ -214,7 +216,7 @@ class AntLoader
     }
 
     /**
-     * The autoloder function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
+     * The autoloader function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
      *
      * @param string $class Classname to load. If found, file will be included and execution will be completed.
      */
@@ -274,7 +276,7 @@ class AntLoader
     }
 
     /**
-     * Prunes the classmap cache of any non-existant classes
+     * Prunes the classmap cache of any non-existent classes
      *
      * @return int The number of classes that was pruned.
      */
