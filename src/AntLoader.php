@@ -126,6 +126,7 @@ class AntLoader
                         error_log("AntLoader warning: classMap.php at {$this->classMapPath} did not return a valid array.");
                         $this->classMap = [];
                     } else {
+                        /** @var array<string,string> $map */
                         $this->classMap = $map;
                     }
                 }
@@ -135,6 +136,7 @@ class AntLoader
                 if (apcu_exists($this->cacheKey)) {
                     $map = apcu_fetch($this->cacheKey);
                     if (is_array($map)) {
+                        /** @var array<string,string> $map */
                         $this->classMap = $map;
                         return;
                     } else {
