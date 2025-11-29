@@ -216,7 +216,7 @@ class AntLoader
     }
 
     /**
-     * The autoloder function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
+     * The autoloader function. You don't need to call this. Just use the register function and then PHP will automatically call the autoloader.
      *
      * @param string $class Classname to load. If found, file will be included and execution will be completed.
      */
@@ -276,7 +276,7 @@ class AntLoader
     }
 
     /**
-     * Prunes the classmap cache of any non-existant classes
+     * Prunes the classmap cache of any non-existent classes
      *
      * @return int The number of classes that was pruned.
      */
